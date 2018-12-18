@@ -1,48 +1,61 @@
 $(function () {
-    var controller = new Controller();
-    controller.initialize();
+    var config = {
+        apiKey: "a5e6574da66e1b3a83737b6b9d31c1b3",
+        baseTmdbUrl: "https://api.themoviedb.org/3",
+        tvGenresPath: "/genre/tv/list",
+        movieGenresPath: "/genre/movie/list",
+        timeout: 20000,
+        configUrl: "https://api.themoviedb.org/3/configuration",
+        dataType: "json"
+    };
+    $.when(getConfiguration(config), getTvGenres(config), getMovieGenres(config)).then(function () {
+        console.log(config);
+    });
 });
 
-function Controller() {
-
-    this.api_key = "a5e6574da66e1b3a83737b6b9d31c1b3";
-    this.configUrl = "https://api.themoviedb.org/3/configuration";
-
-    this.initialize = function () {
-        sendRequest(this.configUrl, {"api_key": this.api_key}, 20, this, "config");
-    };
-
-    this.response = function (responseData, requestType) {
-        switch (requestType) {
-            case "config":
-                initializeConfigObject.call(this, responseData);
-                console.log(this);
-        }
-    };
-
-    this.error = function (requestType) {
-
-    };
-}
-
-function initializeConfigObject(data) {
-    this.imageBaseUrl = data.images.base_url;
-    this.imageBaseSecureUrl = data.images.secure_base_url;
-    this.backdropSizes = data.images.backdrop_sizes;
-    this.posterSizes = data.images.poster_sizes;
-    this.profileSizes = data.images.profile_sizes;
-}
-
-function sendRequest(url, data, timeout, controller, requestType) {
-    $.ajax({
-        url: url,
-        data: data,
-        timeout: timeout * 1000,
+function getConfiguration(configObject) {
+    var properties = {
+        url: configObject.configUrl,
         success: function (data, status, xhr) {
-            controller.response(data, requestType);
-        },
-        error: function (xhr, status, error) {
-            controller.error(requestType);
+            configObject.imageBaseUrl = data.images.base_url;
+            configObject.imageBaseSecureUrl = data.images.secure_base_url;
+            configObject.backdropSizes = data.images.backdrop_sizes;
+            configObject.posterSizes = data.images.poster_sizes;
+            configObject.profileSizes = data.images.profile_sizes;
         }
-    });
+    };
+    return getAjaxRequest(properties, configObject);
+}
+
+function getTvGenres(configObject) {
+    var properties = {
+        url:configObject.baseTmdbUrl + configObject.tvGenresPath,
+        success: function (data, status, xhr) {
+            configObject.tvGenres = data.genres;
+        }
+    };
+    return getAjaxRequest(properties, configObject);
+}
+
+function getMovieGenres(configObject) {
+    var properties = {
+        url:configObject.baseTmdbUrl + configObject.movieGenresPath,
+        success: function (data, status, xhr) {
+            configObject.movieGenres = data.genres;
+        }
+    };
+    return getAjaxRequest(properties, configObject);
+}
+
+function getAjaxRequest(properties, configObject) {
+    properties.timeout = configObject.timeout;
+    properties.dataType = configObject.dataType;
+    if ("data" in properties) {
+        //ci sono già parametri nella query
+        properties.data["api_key"] = configObject.apiKey;
+    } else {
+        //nessun parametro nella query
+        properties.data = {"api_key": configObject.apiKey};
+    }
+    return $.ajax(properties);
 }
