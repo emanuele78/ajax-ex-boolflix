@@ -13,87 +13,92 @@
 		<title></title>
 	</head>
 	<body>
-		<div class="templates">
-			<script id="search_results_template" type="text/x-handlebars-template">
-				{{#if list}}
-				{{#each list}}
-				{{#if @first}}
-				<div class="result result--first">
-					<img alt="" class="result__img" src="{{portraitImage}}">
-				</div>
-				{{else}}
-				<div class="result">
-					<img alt="" class="result__img" src="{{portraitImage}}">
-				</div>
-				{{/if}}
-				{{/each}}
-				{{else}}
-				<p class="no_results">Nessun risultato trovato</p>
-				{{/if}}
-			</script>
-		</div>
-		<div class="header">
-			<div class="header__left">
-				<span class="header__logo">boolflix</span>
+		<div class="main_wrapper">
+			<div class="templates">
+				<script id="search_results_template" type="text/x-handlebars-template">
+					{{#if list}}
+					{{#each list}}
+					{{#if @first}}
+					<div class="result result--first">
+						<img alt="" class="result__img" src="{{portraitImage}}">
+					</div>
+					{{else}}
+					<div class="result">
+						<img alt="" class="result__img" src="{{portraitImage}}">
+					</div>
+					{{/if}}
+					{{/each}}
+					{{else}}
+					<p class="no_results">Nessun risultato trovato</p>
+					{{/if}}
+				</script>
 			</div>
-			<div class="header__right">
-				<div class="search">
-					<label class="search__label" for="search_box">Cerca film, serie TV, persone</label>
-					<input class="search__input" id="search_box" placeholder="Interstellar" type="text">
-					<button class="search__button">cerca</button>
+			<div class="header">
+				<div class="header__left">
+					<span class="header__logo">boolflix</span>
+				</div>
+				<div class="header__right">
+					<div class="search">
+						<label class="search__label" for="search_box">Cerca film, serie TV, persone</label>
+						<input class="search__input" id="search_box" placeholder="Interstellar" type="text">
+						<button class="search__button">cerca</button>
+					</div>
 				</div>
 			</div>
-		</div>
-		<div class="movie_results">
-			<div class="result_details">
-				<span class="result_details__items_count"></span>
-				<span class="result_details__pages_count"></span>
-			</div>
-			<div class="slider">
-				<div class="slider__arrow slider__arrow--previous">
-					<i class="fas fa-caret-left"></i>
+			<div class="movie_results">
+				<div class="result_details">
+					<span class="result_details__items_count"></span>
+					<span class="result_details__pages_count"></span>
 				</div>
-				<div class="slider__arrow slider__arrow--next">
-					<i class="fas fa-caret-right"></i>
-				</div>
-				<div class="movies">
+				<div class="slider">
+					<div class="slider__arrow slider__arrow--previous">
+						<i class="fas fa-caret-left"></i>
+					</div>
+					<div class="slider__arrow slider__arrow--next">
+						<i class="fas fa-caret-right"></i>
+					</div>
+					<div class="movies">
 
+					</div>
+				</div>
+			</div>
+			<div class="tvshow_results">
+				<div class="result_details">
+					<span class="result_details__items_count"></span>
+					<span class="result_details__pages_count"></span>
+				</div>
+				<div class="slider">
+					<div class="slider__arrow slider__arrow--previous">
+						<i class="fas fa-caret-left"></i>
+					</div>
+					<div class="slider__arrow slider__arrow--next">
+						<i class="fas fa-caret-right"></i>
+					</div>
+					<div class="tvshows">
+
+					</div>
+				</div>
+			</div>
+			<div class="people_results">
+				<div class="result_details">
+					<span class="result_details__items_count"></span>
+					<span class="result_details__pages_count"></span>
+				</div>
+				<div class="slider">
+					<div class="slider__arrow slider__arrow--previous">
+						<i class="fas fa-caret-left"></i>
+					</div>
+					<div class="slider__arrow slider__arrow--next">
+						<i class="fas fa-caret-right"></i>
+					</div>
+					<div class="people">
+
+					</div>
 				</div>
 			</div>
 		</div>
-		<div class="tvshow_results">
-			<div class="result_details">
-				<span class="result_details__items_count"></span>
-				<span class="result_details__pages_count"></span>
-			</div>
-			<div class="slider">
-				<div class="slider__arrow slider__arrow--previous">
-					<i class="fas fa-caret-left"></i>
-				</div>
-				<div class="slider__arrow slider__arrow--next">
-					<i class="fas fa-caret-right"></i>
-				</div>
-				<div class="tvshows">
-
-				</div>
-			</div>
-		</div>
-		<div class="people_results">
-			<div class="result_details">
-				<span class="result_details__items_count"></span>
-				<span class="result_details__pages_count"></span>
-			</div>
-			<div class="slider">
-				<div class="slider__arrow slider__arrow--previous">
-					<i class="fas fa-caret-left"></i>
-				</div>
-				<div class="slider__arrow slider__arrow--next">
-					<i class="fas fa-caret-right"></i>
-				</div>
-				<div class="people">
-
-				</div>
-			</div>
+		<div class="footer">
+			<img alt="" class="logo" src="assets/tmdb_logo.png">
 		</div>
 	</body>
 </html>
