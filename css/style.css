@@ -53,11 +53,16 @@ body {
 	display: flex;
 	justify-content: space-between;
 	padding: 20px;
+	background-color: #212121;
 }
 
 .result_details__items_count, .result_details__pages_count {
 	font-size: 16px;
 	color: white;
+}
+
+.content--hide {
+	display: none;
 }
 
 /*RISULTATI RICERCA*/
@@ -77,17 +82,18 @@ body {
 	font-size: 60px;
 	cursor: pointer;
 	transform: translateY(-50%);
-	text-align: center;
 	color: lightskyblue;
 }
 
 .slider__arrow--previous {
 	left: 20px;
+	text-align: left;
 	opacity: 0.3;
 }
 
 .slider__arrow--next {
 	right: 20px;
+	text-align: right;
 	opacity: 0.3;
 }
 
@@ -96,6 +102,7 @@ body {
 	height: 320px;
 	overflow-x: hidden;
 	overflow-y: hidden;
+	margin-top: 10px;
 	padding: 0 0 20px 0;
 	white-space: nowrap;
 }

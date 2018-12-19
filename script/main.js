@@ -83,6 +83,9 @@ function attachSearchHandler(configObject) {
 //sia dalla paginazione attraverso le frecce degli slider
 //a tale scopo il parametro
 function performSearch(searchedText, configObject, page, searchType) {
+    // tolgo il modifier content--hide che nasconde gli slider
+    // questa operazione andrebbe fatta una sola volta tuttavia non è pesante
+    $(".content.content--hide").removeClass("content--hide");
     if (configObject.pendingSearch) {
         // TODO c'è una richiesta - considerare eventuale messaggio all'utente
         return;
