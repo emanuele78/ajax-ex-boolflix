@@ -1,17 +1,82 @@
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-    <!-- font awesome here -->
-    <!-- custom classes here -->
-    <link rel="stylesheet" href="css/style.css">
-    <script src="script/common.js"></script>
-    <script src="script/main.js"></script>
-    <title></title>
-  </head>
-  <body>
+<html dir="ltr" lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta content="width=device-width, initial-scale=1.0" name="viewport">
+		<link crossorigin="anonymous" href="https://use.fontawesome.com/releases/v5.4.2/css/all.css" integrity="sha384-/rXc/GQVaYpyDdyxK+ecHPVYJSN9bmVFBvjA/9eOB+pb3F2w2N6fc5qB9Ew5yIns" rel="stylesheet">
+		<link href="https://fonts.googleapis.com/css?family=Roboto:300,400,700,900" rel="stylesheet">
+		<link href="css/style.css" rel="stylesheet">
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.12/handlebars.min.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+		<script src="script/constructors.js"></script>
+		<script src="script/main.js"></script>
+		<title></title>
+	</head>
+	<body>
+		<div class="templates">
+			<script id="search_results_template" type="text/x-handlebars-template">
+				{{#if list}}
+				{{#each list}}
+				{{#if @first}}
+				<div class="movies__movie movies__movie--first">
+					<img alt="" class="movies__movie__img" src="{{portraitImage}}">
+				</div>
+				{{else}}
+				<div class="movies__movie">
+					<img alt="" class="movies__movie__img" src="{{portraitImage}}">
+				</div>
+				{{/if}}
+				{{/each}}
+				{{else}}
+				<p class="movies__no_movie">Nessun risultato trovato</p>
+				{{/if}}
+			</script>
+		</div>
+		<div class="header">
+			<div class="header__left">
+				<span class="header__logo">boolflix</span>
+			</div>
+			<div class="header__right">
+				<div class="search">
+					<label class="search__label" for="search_box">Cerca film, serie TV, persone</label>
+					<input class="search__input" id="search_box" placeholder="Interstellar" type="text">
+					<button class="search__button">cerca</button>
+				</div>
+			</div>
+		</div>
+		<div class="movie_results">
+			<div class="result_details">
+				<span class="result_details__items_count"></span>
+				<span class="result_details__pages_count"></span>
+			</div>
+			<div class="slider">
+				<div class="slider__arrow slider__arrow--previous">
+					<i class="fas fa-caret-left"></i>
+				</div>
+				<div class="slider__arrow slider__arrow--next">
+					<i class="fas fa-caret-right"></i>
+				</div>
+				<div class="movies">
 
-  </body>
+				</div>
+			</div>
+		</div>
+		<div class="tvshow_results">
+			<div class="result_details">
+				<span class="result_details__items_count"></span>
+				<span class="result_details__pages_count"></span>
+			</div>
+			<div class="slider">
+				<div class="slider__arrow slider__arrow--previous">
+					<i class="fas fa-caret-left"></i>
+				</div>
+				<div class="slider__arrow slider__arrow--next">
+					<i class="fas fa-caret-right"></i>
+				</div>
+				<div class="tvshows">
+
+				</div>
+			</div>
+		</div>
+	</body>
 </html>

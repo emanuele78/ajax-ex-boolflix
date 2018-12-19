@@ -1,0 +1,121 @@
+* {
+	font-family: 'Roboto', sans-serif;
+	box-sizing: border-box;
+	margin: 0;
+	padding: 0;
+}
+
+/*SEZIONE HEADER*/
+.header {
+	display: flex;
+	justify-content: space-between;
+	width: 100%;
+	padding: 25px 20px;
+	background-color: black;
+}
+
+.header__logo {
+	font-size: 28px;
+	font-weight: 700;
+	text-transform: uppercase;
+	color: red;
+}
+
+.search__label {
+	font-size: 14px;
+	margin-right: 10px;
+	color: white;
+}
+
+.search__input, .search__button {
+	font-size: 14px;
+	margin-right: 5px;
+	padding: 7px;
+	border: none;
+	outline: none;
+}
+
+.search__input {
+	margin-right: 5px;
+	outline: none;
+}
+
+.movie_results, .tvshow_results {
+	margin-top: 20px;
+	background-color: black;
+}
+
+.result_details {
+	display: flex;
+	justify-content: space-between;
+	padding: 20px;
+}
+
+.result_details__items_count, .result_details__pages_count {
+	font-size: 16px;
+	color: white;
+}
+
+.slider {
+	position: relative;
+}
+
+.slider__arrow {
+	position: absolute;
+	top: 50%;
+	z-index: 2;
+	font-size: 60px;
+	cursor: pointer;
+	transform: translateY(-50%);
+}
+
+.slider__arrow--previous {
+	left: 20px;
+}
+
+.slider__arrow--next {
+	right: 20px;
+}
+
+.movies, .tvshows {
+	width: 100%;
+	height: 320px;
+	overflow-x: hidden;
+	overflow-y: hidden;
+	padding: 0 0 20px 0;
+	white-space: nowrap;
+	background-color: pink;
+}
+
+.movies__movie {
+	display: inline-block;
+	position: relative;
+	/*aspet ratio 16:9*/
+	width: 200px;
+	height: 300px;
+	margin-left: 20px;
+	background-color: red;
+}
+
+.movies__movie:last-child {
+	margin-right: 20px;
+}
+
+.movies__movie__img {
+	width: 100%;
+	height: 100%;
+}
+
+.movies__no_movie {
+	width: 100%;
+	height: 320px;
+	font-size: 26px;
+	line-height: 320px;
+	text-align: center;
+	color: white;
+}
+
+/*SEZIONE TEMPLATE*/
+.templates {
+	display: none;
+}
