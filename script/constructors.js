@@ -16,54 +16,71 @@ function Slider(container, element, firstFlag, currentPage, pagesCount, animatio
     this.scroll = 0;
     //larghezza degli elementi nello slider
     this.larghezzeElmentoSingolo = $(this.sliderElement).width() + parseInt($(this.sliderElement).css("margin-left"));
+    //proprietà che servono a evitare click veloci dell'utente
+    this.pendingPrevious = false;
+    this.pendingNext = false;
 }
 
 // metodi prototype condivisi dalle istanze di slider
 // muovi avanti lo slider
+// TODO inserire timer per evitare click veloci
 Slider.prototype.moveNext = function () {
-    var massimaPosizioneScroll = $(this.slider).prop("scrollWidth") - $(this.slider).width();
-    if (this.scroll < massimaPosizioneScroll) {
-        var indiceProssimoElementoDaVisualizzare = this.getIndiceProssimoElementoDaVisualizzare(true);
-        if (indiceProssimoElementoDaVisualizzare < $(this.sliderElement).length) {
-            //non tutti gli elementi sono interamente visualizzati
-            // assegno la classe first_visible al primo elemento da visualizzare
-            $(this.sliderElement).eq(indiceProssimoElementoDaVisualizzare).addClass(this.firstFlag);
-            //ottengo coordinate dell'elemento
-            var offset = Math.trunc($(this.sliderFirstElement).position().left);
-            if (this.scroll + offset > massimaPosizioneScroll) {
-                //scrollo alla posizione massima
-                this.scroll = massimaPosizioneScroll;
-            } else {
-                //scrollo alla posizione del primo elemento da visualizzare per intero
-                this.scroll += offset;
+    if (!this.pendingNext) {
+        var massimaPosizioneScroll = $(this.slider).prop("scrollWidth") - $(this.slider).width();
+        if (this.scroll < massimaPosizioneScroll) {
+            var indiceProssimoElementoDaVisualizzare = this.getIndiceProssimoElementoDaVisualizzare(true);
+            if (indiceProssimoElementoDaVisualizzare < $(this.sliderElement).length) {
+                //non tutti gli elementi sono interamente visualizzati
+                // assegno la classe first_visible al primo elemento da visualizzare
+                $(this.sliderElement).eq(indiceProssimoElementoDaVisualizzare).addClass(this.firstFlag);
+                //ottengo coordinate dell'elemento
+                var offset = Math.trunc($(this.sliderFirstElement).position().left);
+                if (this.scroll + offset > massimaPosizioneScroll) {
+                    //scrollo alla posizione massima
+                    this.scroll = massimaPosizioneScroll;
+                } else {
+                    //scrollo alla posizione del primo elemento da visualizzare per intero
+                    this.scroll += offset;
+                }
+                this.pendingNext = true;
+                var thisObject = this;
+                $(this.slider).animate({scrollLeft: this.scroll}, this.animationDuration, function () {
+                    thisObject.pendingNext = false;
+                });
             }
-            $(this.slider).animate({scrollLeft: this.scroll}, this.animationDuration);
+        } else {
+            console.log("raggiunta massima posizione");
         }
-    } else {
-        console.log("raggiunta massima posizione");
     }
 };
 
 // muovi indietro lo slider
+// TODO inserire timer per evitare click veloci
 Slider.prototype.movePrevious = function () {
-    if (this.scroll > 0) {
-        var massimaPosizioneScroll = $(this.slider).prop("scrollWidth") - $(this.slider).width();
-        if (this.scroll === massimaPosizioneScroll) {
-            //la scrollbar si trova nella sua posizione massima
-            var indiceProssimoElementoDaVisualizzare = this.getIndiceProssimoElementoDaVisualizzare(false, massimaPosizioneScroll);
-            $(this.sliderElement).eq(indiceProssimoElementoDaVisualizzare).addClass(this.firstFlag);
-            var offset = Math.trunc($(this.sliderFirstElement).position().left);
-            this.scroll = (this.scroll + offset < 0 ? 0 : this.scroll + offset);
+    if (!this.pendingPrevious) {
+        if (this.scroll > 0) {
+            var massimaPosizioneScroll = $(this.slider).prop("scrollWidth") - $(this.slider).width();
+            if (this.scroll === massimaPosizioneScroll) {
+                //la scrollbar si trova nella sua posizione massima
+                var indiceProssimoElementoDaVisualizzare = this.getIndiceProssimoElementoDaVisualizzare(false, massimaPosizioneScroll);
+                $(this.sliderElement).eq(indiceProssimoElementoDaVisualizzare).addClass(this.firstFlag);
+                var offset = Math.trunc($(this.sliderFirstElement).position().left);
+                this.scroll = (this.scroll + offset < 0 ? 0 : this.scroll + offset);
+            } else {
+                //scrollbar in posizione intermedia
+                indiceProssimoElementoDaVisualizzare = this.getIndiceProssimoElementoDaVisualizzare(false, massimaPosizioneScroll);
+                $(this.sliderElement).eq(indiceProssimoElementoDaVisualizzare).addClass(this.firstFlag);
+                offset = Math.trunc($(this.sliderFirstElement).position().left);
+                this.scroll += offset;
+            }
+            this.pendingPrevious = true;
+            var thisObject = this;
+            $(this.slider).animate({scrollLeft: this.scroll}, this.animationDuration, function () {
+                thisObject.pendingPrevious = false;
+            });
         } else {
-            //scrollbar in posizione intermedia
-            indiceProssimoElementoDaVisualizzare = this.getIndiceProssimoElementoDaVisualizzare(false, massimaPosizioneScroll);
-            $(this.sliderElement).eq(indiceProssimoElementoDaVisualizzare).addClass(this.firstFlag);
-            offset = Math.trunc($(this.sliderFirstElement).position().left);
-            this.scroll += offset;
+            console.log("raggiunta minima posizione");
         }
-        $(this.slider).animate({scrollLeft: this.scroll}, this.animationDuration);
-    } else {
-        console.log("raggiunta minima posizione");
     }
 };
 

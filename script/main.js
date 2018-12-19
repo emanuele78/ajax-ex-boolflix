@@ -76,11 +76,14 @@ function attachSearchHandler(configObject) {
 
 //funzione che riceve la richiesta dell'utente di avviare una ricerca in tmdb
 function performSearch(text, configObject) {
+    // TODO verificare se c'è una richiesta pendente da proprietà config object
     if (text === undefined || text.trim().length == 0) {
         // TODO ricerca non valida, verificare se aggiungere anche un minimo numero di caratteri
         return;
     }
     // TODO rimuovere handler su frecce slider dopo avvio nuova ricerca
+    $(".slider__arrow--next").off();
+    $(".slider__arrow--previous").off();
     $.when(
         searchForMovies(text.trim(), configObject, 1),
         searchForTvShows(text.trim(), configObject, 1),
