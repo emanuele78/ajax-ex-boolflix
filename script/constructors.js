@@ -137,3 +137,9 @@ function TvShow(id, poster, overview, releaseDate, genres, backdrops, title, ori
     this.voteAverage = voteAverage;
     this.voteCount = voteCount;
 }
+
+//costruttore per istanze persona
+function Person(id, pic, name, config) {
+    TmdbSearchResponse.call(this, id, pic, config);
+    this.name = name;
+}
