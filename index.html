@@ -18,17 +18,17 @@
 				{{#if list}}
 				{{#each list}}
 				{{#if @first}}
-				<div class="movies__movie movies__movie--first">
-					<img alt="" class="movies__movie__img" src="{{portraitImage}}">
+				<div class="result result--first">
+					<img alt="" class="result__img" src="{{portraitImage}}">
 				</div>
 				{{else}}
-				<div class="movies__movie">
-					<img alt="" class="movies__movie__img" src="{{portraitImage}}">
+				<div class="result">
+					<img alt="" class="result__img" src="{{portraitImage}}">
 				</div>
 				{{/if}}
 				{{/each}}
 				{{else}}
-				<p class="movies__no_movie">Nessun risultato trovato</p>
+				<p class="no_results">Nessun risultato trovato</p>
 				{{/if}}
 			</script>
 		</div>

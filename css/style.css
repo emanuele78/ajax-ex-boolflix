@@ -87,26 +87,26 @@
 	background-color: pink;
 }
 
-.movies__movie {
+.result {
 	display: inline-block;
 	position: relative;
-	/*aspet ratio 16:9*/
+	/*aspet ratio 2:3*/
 	width: 200px;
 	height: 300px;
 	margin-left: 20px;
 	background-color: red;
 }
 
-.movies__movie:last-child {
+.result:last-child {
 	margin-right: 20px;
 }
 
-.movies__movie__img {
+.result__img {
 	width: 100%;
 	height: 100%;
 }
 
-.movies__no_movie {
+.no_results {
 	width: 100%;
 	height: 320px;
 	font-size: 26px;

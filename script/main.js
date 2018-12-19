@@ -137,7 +137,7 @@ function handleMovieSearchResults(data, configObject) {
     //stampo i dettagli sui risultati della ricerca - film trovati, pagine, etc..
     printSearchDetails("Film trovati: ", $(".movie_results .result_details__items_count"), data.total_results, $(".movie_results .result_details__pages_count"), data.page, data.total_pages);
     //creo oggetto slider
-    var movieSlider = new Slider("movies", "movies__movie", "movies__movie--first", data.page, data.total_pages, configObject.sliderAnimationDuration, movies, undefined);
+    var movieSlider = new Slider("movies", "result", "result--first", data.page, data.total_pages, configObject.sliderAnimationDuration, movies, undefined);
     //handler per i click su avanti e indietro
     $(".movie_results .slider__arrow--next").click(function () {
         movieSlider.moveNext();
@@ -195,7 +195,7 @@ function handleTvShowsSearchResults(data, configObject) {
     //stampo i dettagli sui risultati della ricerca - serie tv trovate, pagine, etc..
     printSearchDetails("Serie TV trovate: ", $(".tvshow_results .result_details__items_count"), data.total_results, $(".tvshow_results .result_details__pages_count"), data.page, data.total_pages);
     //creo oggetto slider
-    var tvShowsSlider = new Slider("tvshows", "movies__movie", "movies__movie--first", data.page, data.total_pages, configObject.sliderAnimationDuration, tvShows, undefined);
+    var tvShowsSlider = new Slider("tvshows", "result", "result--first", data.page, data.total_pages, configObject.sliderAnimationDuration, tvShows, undefined);
     //handler per i click su avanti e indietro
     $(".tvshow_results .slider__arrow--next").click(function () {
         tvShowsSlider.moveNext();
