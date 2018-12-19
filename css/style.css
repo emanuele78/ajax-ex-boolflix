@@ -73,9 +73,12 @@ body {
 	position: absolute;
 	top: 50%;
 	z-index: 2;
+	width: 50px;
 	font-size: 60px;
 	cursor: pointer;
 	transform: translateY(-50%);
+	text-align: center;
+	color: lightskyblue;
 }
 
 .slider__arrow--previous {
@@ -104,7 +107,6 @@ body {
 	width: 200px;
 	height: 300px;
 	margin-left: 20px;
-	background-color: red;
 }
 
 .result:last-child {
@@ -114,6 +116,32 @@ body {
 .result__img {
 	width: 100%;
 	height: 100%;
+}
+
+.result__hover {
+	display: none;
+	position: absolute;
+	bottom: 15px;
+	left: 10px;
+	width: calc(100% - 20px);
+	height: 4px;
+	background-color: white;
+}
+
+.result:hover .result__hover {
+	display: block;
+}
+
+.result__hover__arrow {
+	position: absolute;
+	top: 0;
+	left: 50%;
+	width: 0;
+	height: 0;
+	transform: translateX(-50%);
+	border-top: 15px solid white;
+	border-right: 15px solid transparent;
+	border-left: 15px solid transparent;
 }
 
 .no_results {

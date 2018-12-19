@@ -1,10 +1,11 @@
 "use strict";
+// TODO valutare se estrapolare proprietà prototype
 //container, element e firstFlag sono stringhe che rappresentano le classi utilizzate nel css
 //container: container per lo slider
 //element: elemento dello slider
 //firstFlag: classe assegnata al primo elemento visualizzato
 //data: array di oggetti da visualizzare
-function Slider(container, element, firstFlag, currentPage, pagesCount, animationDuration, data, loadFunctionCallback) {
+function Slider(container, element, firstFlag, currentPage, pagesCount, animationDuration, searchedText, loadFunctionCallback, configObject, searchType) {
 
     //stringhe di utilità per i selettori jquery
     this.slider = "." + container;
@@ -19,12 +20,28 @@ function Slider(container, element, firstFlag, currentPage, pagesCount, animatio
     //proprietà che servono a evitare click veloci dell'utente
     this.pendingPrevious = false;
     this.pendingNext = false;
+    //proprietà per la paginazione
+    this.searchedText = searchedText;
+    this.currentPage = currentPage;
+    this.pagesCount = pagesCount;
+    this.configObject = configObject;
+    this.paginationCallback = loadFunctionCallback;
+    this.searchType = searchType;
+    //reset dello slider
+    this.reset();
+    // TODO da cancellare
+    this.objId = Math.trunc(Math.random() * (100000 - 1) + 1);
+    console.log("creato oggetto per tipo " + this.searchType + " slider con id: " + this.objId);
 }
 
 // metodi prototype condivisi dalle istanze di slider
+Slider.prototype.reset = function () {
+    $(this.slider).scrollLeft(0);
+};
+
 // muovi avanti lo slider
-// TODO inserire timer per evitare click veloci
 Slider.prototype.moveNext = function () {
+    console.log("metodo next per tipo " + this.searchType + " su oggetto id: " + this.objId);
     if (!this.pendingNext) {
         var massimaPosizioneScroll = $(this.slider).prop("scrollWidth") - $(this.slider).width();
         if (this.scroll < massimaPosizioneScroll) {
@@ -50,13 +67,17 @@ Slider.prototype.moveNext = function () {
             }
         } else {
             console.log("raggiunta massima posizione");
+            if (this.currentPage < this.pagesCount) {
+                //paginazione - avvio una nuova ricerca per la pagina successiva
+                this.paginationCallback(this.searchedText, this.configObject, this.currentPage + 1, this.searchType);
+            }
         }
     }
 };
 
 // muovi indietro lo slider
-// TODO inserire timer per evitare click veloci
 Slider.prototype.movePrevious = function () {
+    console.log("metodo previous per tipo " + this.searchType + " su oggetto id: " + this.objId);
     if (!this.pendingPrevious) {
         if (this.scroll > 0) {
             var massimaPosizioneScroll = $(this.slider).prop("scrollWidth") - $(this.slider).width();
@@ -80,12 +101,17 @@ Slider.prototype.movePrevious = function () {
             });
         } else {
             console.log("raggiunta minima posizione");
+            if (this.currentPage > 1) {
+                //paginazione - avvio una nuova ricerca per la pagina precedente
+                this.paginationCallback(this.searchedText, this.configObject, this.currentPage - 1, this.searchType);
+            }
         }
     }
 };
 
 // funzione di utilità
 Slider.prototype.getIndiceProssimoElementoDaVisualizzare = function (avanti, massimaPosizioneScroll) {
+    console.log("funzione utilità su oggetto id: " + this.objId);
     var indicePrimoElementoVisualizzato = $(this.sliderFirstElement).index();
     var larghezzaTotaleContainer = $(this.slider).width();
     var elementiVisualizzatiInteramente = Math.trunc(larghezzaTotaleContainer / this.larghezzeElmentoSingolo);

@@ -18,15 +18,12 @@
 				<script id="search_results_template" type="text/x-handlebars-template">
 					{{#if list}}
 					{{#each list}}
-					{{#if @first}}
-					<div class="result result--first">
+					<div class="result {{#if @first}}result--first{{/if}}">
 						<img alt="" class="result__img" src="{{portraitImage}}">
+						<div class="result__hover">
+							<div class="result__hover__arrow"></div>
+						</div>
 					</div>
-					{{else}}
-					<div class="result">
-						<img alt="" class="result__img" src="{{portraitImage}}">
-					</div>
-					{{/if}}
 					{{/each}}
 					{{else}}
 					<p class="no_results">Nessun risultato trovato</p>
@@ -45,6 +42,7 @@
 					</div>
 				</div>
 			</div>
+			<!--TODO da verificare se conviene un template per i 3 blocchi seguenti-->
 			<div class="movie_results">
 				<div class="result_details">
 					<span class="result_details__items_count"></span>

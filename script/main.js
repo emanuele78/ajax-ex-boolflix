@@ -16,7 +16,10 @@ $(function () {
         dataType: "json",
         responseLang: "it-IT",
         includeAdult: false,
-        sliderAnimationDuration: 500
+        sliderAnimationDuration: 500,
+        moviesSearchType: 1,
+        tvShowsSearchType: 2,
+        peopleSearchType: 3
     };
     $.when(getConfiguration(config), getTvGenres(config), getMovieGenres(config)).then(function () {
         //dopo che la configurazione è terminata, collego handler per la ricerca
@@ -62,50 +65,124 @@ function getMovieGenres(configObject) {
 
 //funzione che collega handler per la ricerca
 function attachSearchHandler(configObject) {
+    var paginaIniziale = 1;
     //handler per la pressione del tasto invio all'interno della casella di ricerca
     $(".search__input").keyup(function (key) {
         if (key.keyCode === 13) {
-            performSearch($(".search__input").val(), configObject);
+            performSearch($(".search__input").val(), configObject, paginaIniziale);
         }
     });
     //handler per il click sul bottone di ricerca
     $(".search__button").click(function () {
-        performSearch($(".search__input").val(), configObject);
+        performSearch($(".search__input").val(), configObject, paginaIniziale);
     });
 }
 
 //funzione che riceve la richiesta dell'utente di avviare una ricerca in tmdb
-function performSearch(text, configObject) {
-    // TODO verificare se c'è una richiesta pendente da proprietà config object
-    if (text === undefined || text.trim().length == 0) {
-        // TODO ricerca non valida, verificare se aggiungere anche un minimo numero di caratteri
+//questa funzione può essere lanciata sia dalla pressione del button (o tasto invio)
+//sia dalla paginazione attraverso le frecce degli slider
+//a tale scopo il parametro
+function performSearch(searchedText, configObject, page, searchType) {
+    if (configObject.pendingSearch) {
+        // TODO c'è una richiesta - considerare eventuale messaggio all'utente
         return;
     }
-    // TODO rimuovere handler su frecce slider dopo avvio nuova ricerca
-    $(".slider__arrow--next").off();
-    $(".slider__arrow--previous").off();
-    $.when(
-        searchForMovies(text.trim(), configObject, 1),
-        searchForTvShows(text.trim(), configObject, 1),
-        searchForPeople(text.trim(), configObject, 1)
-    ).then(function () {
-        // TODO risultati ottenuti - aggiungere handler per click su immagini
-    });
-
+    if (searchedText === undefined || searchedText.trim().length === 0) {
+        // TODO ricerca non valida, considerare se aggiungere anche un minimo numero di caratteri
+        return;
+    }
+    // imposto nel config che una ricerca è stata lanciata
+    configObject.pendingSearch = true;
+    // ogni opzione di ricerca scollega i listener per le frecce del relativo slider
+    //se la ricerca è globale vengono scollegati tutti i listener
+    switch (searchType) {
+        case configObject.moviesSearchType:
+            //ricerca film
+            detachPaginationFor($(".movie_results"));
+            $.when(
+                searchForMovies(searchedText.trim(), configObject, page)
+            ).then(function () {
+                searchCompleted(configObject);
+            });
+            break;
+        case configObject.tvShowsSearchType:
+            //ricerca serie tv
+            detachPaginationFor($(".tvshow_results"));
+            $.when(
+                searchForTvShows(searchedText.trim(), configObject, page)
+            ).then(function () {
+                searchCompleted(configObject);
+            });
+            break;
+        case configObject.peopleSearchType:
+            //ricerca personaggi
+            detachPaginationFor($(".people_results"));
+            $.when(
+                searchForPeople(searchedText.trim(), configObject, page)
+            ).then(function () {
+                searchCompleted(configObject);
+            });
+            break;
+        default:
+            //ricerca tutto
+            detachPaginationFor($(".slider"));
+            $.when(
+                searchForMovies(searchedText.trim(), configObject, page),
+                searchForTvShows(searchedText.trim(), configObject, page),
+                searchForPeople(searchedText.trim(), configObject, page)
+            ).then(function () {
+                searchCompleted(configObject);
+            });
+    }
 }
 
+function searchCompleted(configObject) {
+    configObject.pendingSearch = false;
+    // TODO risultati ottenuti - aggiungere handler per click su immagini
+}
+
+//funzione che elimina i listener per le frecce di navigazione per un dato elemento
+function detachPaginationFor(elementToDetach) {
+    elementToDetach.find(".slider__arrow--next").off();
+    elementToDetach.find(".slider__arrow--previous").off();
+}
+
+// TODO considerare di raggruppare le 3 funzioni searchForX in un'unica funzione
 //funzione che avvia la ricerca per i film
-function searchForMovies(text, configObject, page) {
+function searchForMovies(searchedText, configObject, page) {
+    // detachPaginationFor($(".movie_results"));
     var properties = {
         url: configObject.baseTmdbUrl + configObject.moviesSearchPath,
         data: {
             language: configObject.responseLang,
-            query: text,
+            query: searchedText,
             include_adult: configObject.includeAdult,
             page: page
         },
         success: function (data, status, xhr) {
-            handleMovieSearchResults(data, configObject);
+            handleMovieSearchResults(data, configObject, searchedText);
+        },
+        error: function () {
+            // TODO errore ricerca film
+            // TODO considerare di passare oggetto data con 0 risultati e 0 pagine
+        }
+    };
+    return getAjaxRequest(properties, configObject);
+}
+
+// funzione che avvia la ricerca per le serie tv
+function searchForTvShows(searchedText, configObject, page) {
+    // detachPaginationFor($(".tvshow_results"));
+    var properties = {
+        url: configObject.baseTmdbUrl + configObject.tvSearchPath,
+        data: {
+            language: configObject.responseLang,
+            query: searchedText,
+            include_adult: configObject.includeAdult,
+            page: page
+        },
+        success: function (data, status, xhr) {
+            handleTvShowsSearchResults(data, configObject, searchedText);
         },
         error: function () {
             // TODO errore ricerca film
@@ -114,10 +191,32 @@ function searchForMovies(text, configObject, page) {
     return getAjaxRequest(properties, configObject);
 }
 
+// funzione che avvia la ricerca per le persone
+function searchForPeople(searchedText, configObject, page) {
+    // detachPaginationFor($(".people_results"));
+    var properties = {
+        url: configObject.baseTmdbUrl + configObject.peopleSearchPath,
+        data: {
+            language: configObject.responseLang,
+            query: searchedText,
+            include_adult: configObject.includeAdult,
+            page: page
+        },
+        success: function (data, status, xhr) {
+            handlePeopleSearchResults(data, configObject, searchedText);
+        },
+        error: function () {
+            // TODO errore ricerca film
+        }
+    };
+    return getAjaxRequest(properties, configObject);
+}
+
+
 //funzione che gestisce la risposta per la ricerca effettuata sui film
-function handleMovieSearchResults(data, configObject) {
+function handleMovieSearchResults(data, configObject, searchedText) {
     var movies = [];
-    console.log(data);
+    // console.log(data);
     if (data.total_results > 0) {
         data.results.forEach(function (entry) {
             //creo nuovo oggetto movie e lo inserisco nell'array
@@ -137,12 +236,14 @@ function handleMovieSearchResults(data, configObject) {
             ));
         });
     }
+    //rimuovo precedente html cancellando anche i listener associati sugli elementi
+    $(".movie_results .movies").empty();
     //inserisco html fornito attraverso handlebars
     $(".movie_results .movies").html(getHtmlFromHandlebars(movies, $("#search_results_template").html()));
     //stampo i dettagli sui risultati della ricerca - film trovati, pagine, etc..
     printSearchDetails("Film trovati: ", $(".movie_results .result_details__items_count"), data.total_results, $(".movie_results .result_details__pages_count"), data.page, data.total_pages);
     //creo oggetto slider
-    var movieSlider = new Slider("movies", "result", "result--first", data.page, data.total_pages, configObject.sliderAnimationDuration, movies, undefined);
+    var movieSlider = new Slider("movies", "result", "result--first", data.page, data.total_pages, configObject.sliderAnimationDuration, searchedText, performSearch, configObject, configObject.moviesSearchType);
     //handler per i click su avanti e indietro
     $(".movie_results .slider__arrow--next").click(function () {
         movieSlider.moveNext();
@@ -152,30 +253,10 @@ function handleMovieSearchResults(data, configObject) {
     });
 }
 
-// funzione che avvia la ricerca per le serie tv
-function searchForTvShows(text, configObject, page) {
-    var properties = {
-        url: configObject.baseTmdbUrl + configObject.tvSearchPath,
-        data: {
-            language: configObject.responseLang,
-            query: text,
-            include_adult: configObject.includeAdult,
-            page: page
-        },
-        success: function (data, status, xhr) {
-            handleTvShowsSearchResults(data, configObject);
-        },
-        error: function () {
-            // TODO errore ricerca film
-        }
-    };
-    return getAjaxRequest(properties, configObject);
-}
-
 // funzione che gestisce la risposta per la ricerca effettuata sulle serie tv
-function handleTvShowsSearchResults(data, configObject) {
+function handleTvShowsSearchResults(data, configObject, searchedText) {
     var tvShows = [];
-    console.log(data);
+    // console.log(data);
     if (data.total_results > 0) {
         data.results.forEach(function (entry) {
             //creo nuovo oggetto serie tv e lo inserisco nell'array
@@ -195,12 +276,14 @@ function handleTvShowsSearchResults(data, configObject) {
             ));
         });
     }
+    //rimuovo precedente html cancellando anche i listener associati sugli elementi
+    $(".tvshow_results .movies").empty();
     //inserisco html fornito attraverso handlebars
     $(".tvshow_results .tvshows").html(getHtmlFromHandlebars(tvShows, $("#search_results_template").html()));
     //stampo i dettagli sui risultati della ricerca - serie tv trovate, pagine, etc..
     printSearchDetails("Serie TV trovate: ", $(".tvshow_results .result_details__items_count"), data.total_results, $(".tvshow_results .result_details__pages_count"), data.page, data.total_pages);
     //creo oggetto slider
-    var tvShowsSlider = new Slider("tvshows", "result", "result--first", data.page, data.total_pages, configObject.sliderAnimationDuration, tvShows, undefined);
+    var tvShowsSlider = new Slider("tvshows", "result", "result--first", data.page, data.total_pages, configObject.sliderAnimationDuration, searchedText, performSearch, configObject, configObject.tvShowsSearchType);
     //handler per i click su avanti e indietro
     $(".tvshow_results .slider__arrow--next").click(function () {
         tvShowsSlider.moveNext();
@@ -210,30 +293,10 @@ function handleTvShowsSearchResults(data, configObject) {
     });
 }
 
-// funzione che avvia la ricerca per le persone
-function searchForPeople(text, configObject, page) {
-    var properties = {
-        url: configObject.baseTmdbUrl + configObject.peopleSearchPath,
-        data: {
-            language: configObject.responseLang,
-            query: text,
-            include_adult: configObject.includeAdult,
-            page: page
-        },
-        success: function (data, status, xhr) {
-            handlePeopleSearchResults(data, configObject);
-        },
-        error: function () {
-            // TODO errore ricerca film
-        }
-    };
-    return getAjaxRequest(properties, configObject);
-}
-
 // funzione che gestisce la risposta per la ricerca effettuata sulle persone
-function handlePeopleSearchResults(data, configObject) {
+function handlePeopleSearchResults(data, configObject, searchedText) {
     var people = [];
-    console.log(data);
+    // console.log(data);
     if (data.total_results > 0) {
         data.results.forEach(function (entry) {
             //creo nuovo oggetto persona e lo inserisco nell'array
@@ -245,12 +308,14 @@ function handlePeopleSearchResults(data, configObject) {
             ));
         });
     }
+    //rimuovo precedente html cancellando anche i listener associati sugli elementi
+    $(".people_results .movies").empty();
     //inserisco html fornito attraverso handlebars
     $(".people_results .people").html(getHtmlFromHandlebars(people, $("#search_results_template").html()));
     //stampo i dettagli sui risultati della ricerca - persone trovate, pagine, etc..
     printSearchDetails("Personaggi trovati: ", $(".people_results .result_details__items_count"), data.total_results, $(".people_results .result_details__pages_count"), data.page, data.total_pages);
     //creo oggetto slider
-    var peopleSlider = new Slider("people", "result", "result--first", data.page, data.total_pages, configObject.sliderAnimationDuration, people, undefined);
+    var peopleSlider = new Slider("people", "result", "result--first", data.page, data.total_pages, configObject.sliderAnimationDuration, searchedText, performSearch, configObject, configObject.peopleSearchType);
     //handler per i click su avanti e indietro
     $(".people_results .slider__arrow--next").click(function () {
         peopleSlider.moveNext();
