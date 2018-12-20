@@ -17,7 +17,7 @@ $(function () {
         dataType: "json",
         responseLang: "it-IT",
         imageLang: "it,null",
-        appendExtra: "credits",
+        appendExtra: "credits,images",
         includeAdult: false,
         sliderAnimationDuration: 500,
         detailSectionSlideDuration: 300,
@@ -123,6 +123,11 @@ function performSearch(searchedText, configObject, page, searchType) {
         case configObject.tvShowType:
             //ricerca serie tv
             detachPaginationFor($(".tvshow_results"));
+            $(".tvshow_results").find(".selected--element").removeClass("selected--element");
+            //controllo se la sezione dettagli è visualizzata
+            if ($(".tvshow_details").is(":visible")) {
+                $(".tvshow_details").slideUp(configObject.detailSectionSlideDuration);
+            }
             $.when(
                 search(searchedText.trim(), configObject, page, configObject.tvShowsPath, handleTvShowsSearchResults),
             ).then(function () {
@@ -151,7 +156,6 @@ function performSearch(searchedText, configObject, page, searchType) {
     }
 }
 
-
 function searchCompleted(configObject) {
     configObject.pendingSearch = false;
     $(".result").off();
@@ -164,6 +168,12 @@ function searchCompleted(configObject) {
                 $(".movie_results").find(".selected--element").removeClass("selected--element");
                 $(this).addClass("selected--element")
                 searchMovieDetails(id, configObject, $(this));
+                break;
+            case configObject.tvShowType:
+                //rimuovo classe per il bordo da un eventuale precedente elemento e la aggiungo all'elemento cliccato
+                $(".tvshow_results").find(".selected--element").removeClass("selected--element");
+                $(this).addClass("selected--element")
+                searchTvShowDetails(id, configObject, $(this));
                 break;
         }
     });
@@ -231,6 +241,67 @@ function searchMovieDetails(movieId, configObject, selectedHtmlElement) {
     getAjaxRequest(properties, configObject);
 }
 
+function searchTvShowDetails(tvShowId, configObject, selectedHtmlElement) {
+    var properties = {
+        url: configObject.baseTmdbUrl + configObject.tvShowsPath + "/" + tvShowId,
+        data: {
+            include_image_language: configObject.imageLang,
+            append_to_response: configObject.appendExtra
+        },
+        success: function (data, status, xhr) {
+            console.log(data);
+            var cast = [];
+            if (data.credits.cast.length > 0) {
+                data.credits.cast.forEach(function (item) {
+                    cast.push(new TmdbSearchResponse(
+                        item.id,
+                        item.profile_path,
+                        configObject.personType,
+                        item.name,
+                        configObject));
+                });
+            }
+            var crew = [];
+            if (data.credits.crew.length > 0) {
+                data.credits.crew.forEach(function (item) {
+                    crew.push(new TmdbSearchResponse(
+                        item.id,
+                        item.profile_path,
+                        configObject.personType,
+                        item.name,
+                        configObject));
+                });
+            }
+            var tvShow = new TvShow(
+                data.id,
+                data.poster_path,
+                configObject.movieType,
+                data.name,
+                configObject,
+                data.overview,
+                data.first_air_date,
+                data.genres,
+                data.backdrop_path,
+                data.original_name,
+                data.origin_country,
+                data.vote_average,
+                data.vote_count,
+                data.status,
+                data.number_of_episodes,
+                data.number_of_seasons,
+                cast,
+                crew
+            );
+            showTvDetails(tvShow, configObject, selectedHtmlElement);
+        },
+        error: function () {
+            // TODO errore
+            console.log("errore dettagli serie tv");
+        }
+    };
+    getAjaxRequest(properties, configObject);
+}
+
 function showMovieDetails(movie, configObject) {
     console.log(movie);
     $(".movie_details .title").text(movie.getValue("title"));
@@ -258,6 +329,36 @@ function showMovieDetails(movie, configObject) {
         //chiudo dettagli film
         $(".movie_details").slideUp(configObject.detailSectionSlideDuration);
         $(".movie_results").find(".selected--element").removeClass("selected--element");
+    });
+}
+
+function showTvDetails(tvshow, configObject) {
+    console.log(tvshow);
+    $(".tvshow_details .title").text(tvshow.getValue("title"));
+    $(".tvshow_details .sub_title_original_title").text(tvshow.getValue("originalTitle"));
+    $(".tvshow_details .genres_content").text(tvshow.getGenres());
+    //ottengo template da funzione di utilità per handlebars a cui passo il valore di movie.voteAverage che è un array
+    //se il voto non è presente l'array è vuoto altrimenti contiene valori boolean (true=stella piena, false=stella vuota)
+    $(".tvshow_details .vote_average").html(getHtmlFromHandlebars(tvshow.voteAverage, $("#vote_template").html()));
+    $(".tvshow_details .vote_count").text(tvshow.voteCount);
+    $(".tvshow_details .seasons_value").text(tvshow.seasons);
+    $(".tvshow_details .episodes_value").text(tvshow.episodes);
+    $(".tvshow_details .plot_content").text(tvshow.getValue("overview"));
+    $(".tvshow_details .status_content").text(tvshow.getValue("status"));
+    $(".tvshow_details .release_date_content").text(tvshow.releaseDate);
+    $(".tvshow_details .release_country").html(getHtmlFromHandlebars(tvshow.productionCountries, $("#country_flag_template").html()));
+    $(".tvshow_details .crew").html(getHtmlFromHandlebars(tvshow.crew, $("#credits_template").html()));
+    $(".tvshow_details .cast").html(getHtmlFromHandlebars(tvshow.cast, $("#credits_template").html()));
+    //controllo se la sezione è visualizzata
+    if ($(".tvshow_details").is(":hidden")) {
+        $(".tvshow_details").slideDown(configObject.detailSectionSlideDuration);
+    }
+    //associo hanlder per la chiusura
+    $(".tvshow_details .close_section__icon").off();
+    $(".tvshow_details .close_section__icon").click(function () {
+        //chiudo dettagli film
+        $(".tvshow_details").slideUp(configObject.detailSectionSlideDuration);
+        $(".tvshow_results").find(".selected--element").removeClass("selected--element");
     });
 }
 
