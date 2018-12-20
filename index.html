@@ -8,6 +8,7 @@
 		<link href="css/style.css" rel="stylesheet">
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/handlebars.js/4.0.12/handlebars.min.js"></script>
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+		<script src="https://momentjs.com/downloads/moment.js"></script>
 		<script src="script/constructors.js"></script>
 		<script src="script/main.js"></script>
 		<title></title>
@@ -18,7 +19,7 @@
 				<script id="search_results_template" type="text/x-handlebars-template">
 					{{#if list}}
 					{{#each list}}
-					<div class="result {{#if @first}}result--first{{/if}}">
+					<div class="result {{#if @first}}result--first{{/if}}" data-id="{{id}}" data-type="{{type}}" id="{{id}}">
 						<img alt="" class="result__img" src="{{portraitImage}}">
 						<div class="result__hover">
 							<div class="result__hover__arrow"></div>
@@ -29,21 +30,52 @@
 					<p class="no_results">Nessun risultato trovato</p>
 					{{/if}}
 				</script>
+				<script id="vote_template" type="text/x-handlebars-template">
+					<span class="vote_average_label">Voto medio:</span>
+					{{#if list}}
+					{{#each list}}
+					<i class="star_vote {{#if vote}}fas{{else}}far{{/if}} fa-star"></i>
+					{{/each}}
+					{{else}}
+					<span class="vote_average_no_vote">N/A</span>
+					{{/if}}
+				</script>
+				<script id="country_flag_template" type="text/x-handlebars-template">
+					<span class="country_production_label">Paesi di produzione:</span>
+					{{#if list}}
+					{{#each list}}
+					<img class="release_lang" onerror="this.onerror=null;this.src='assets/no_flag.png'" src="{{countryFlagUrl}}">
+					{{/each}}
+					{{else}}
+					<span class="country_flag_no_flag">N/A</span>
+					{{/if}}
+				</script>
+				<script id="credits_template" type="text/x-handlebars-template">
+					{{#if list}}
+					{{#each list}}
+					<div class="person_detail_img_wrapper">
+						<img alt="" class="person_detail_img" src="{{portraitImage}}">
+						<span class="person_detail_name">{{name}}</span>
+					</div>
+					{{/each}}
+					{{else}}
+					<span class="no_credits">N/A</span>
+					{{/if}}
+				</script>
 			</div>
 			<div class="header">
 				<div class="header__left">
-					<span class="header__logo">boolflix</span>
+					<img alt="" class="header__logo" src="assets/boolflix_logo.png">
 				</div>
 				<div class="header__right">
 					<div class="search">
 						<label class="search__label" for="search_box">Cerca film, serie TV, persone</label>
-						<input class="search__input" id="search_box" placeholder="Interstellar" type="text">
+						<input class="search__input" id="search_box" placeholder="Interstellar" type="text" value="Frank">
 						<button class="search__button">cerca</button>
 					</div>
 				</div>
 			</div>
 			<div class="content content--hide">
-				<!--TODO da verificare se conviene un template per i 3 blocchi seguenti-->
 				<div class="movie_results">
 					<div class="result_details">
 						<span class="result_details__items_count"></span>
@@ -59,6 +91,58 @@
 						<div class="movies">
 
 						</div>
+					</div>
+					<div class="movie_details">
+						<div class="movie_details__info">
+							<div class="movie_details__info__generals">
+								<span class="title"></span>
+								<div class="sub_title">
+									<span class="sub_title_label">Titolo originale</span>
+									<span class="sub_title_original_title"></span>
+								</div>
+								<div class="genres">
+									<span class="genres_label">Genere:</span>
+									<span class="genres_content"></span>
+								</div>
+								<div class="vote_average"></div>
+								<span class="vote_label">Voti ricevuti:</span>
+								<span class="vote_count"></span>
+								<div class="budget">
+									<span class="budget_label">Budget $</span>
+									<span class="budget_value"></span>
+								</div>
+								<div class="revenue">
+									<span class="revenue_label">Incasso $</span>
+									<span class="revenue_value"></span>
+								</div>
+							</div>
+							<div class="movie_details__info__plot">
+								<span class="plot_label">Trama</span>
+								<p class="plot_content"></p>
+							</div>
+						</div>
+						<div class="movie_details__credits">
+							<span class="crew_label">Cast tecnico</span>
+							<div class="crew"></div>
+							<span class="cast_label">Attori</span>
+							<div class="cast"></div>
+						</div>
+						<div class="movie_details__bottom">
+							<div class="movie_details__bottom__tagline">
+								<span class="tagline_label">Frase celebre</span>
+								<p class="tagline_content"></p>
+							</div>
+							<div class="movie_details__bottom__release">
+								<div class="release_date">
+									<span class="release_date_label">Data rilascio:</span>
+									<span class="release_date_content"></span>
+								</div>
+								<div class="release_country"></div>
+							</div>
+						</div>
+					<div class="close_section">
+						<i class="close_section__icon fas fa-times"></i>
+					</div>
 					</div>
 				</div>
 				<div class="tvshow_results">

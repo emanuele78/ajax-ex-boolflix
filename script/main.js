@@ -9,17 +9,24 @@ $(function () {
         configPath: "/configuration",
         tvGenresPath: "/genre/tv/list",
         moviesGenresPath: "/genre/movie/list",
-        tvSearchPath: "/search/tv",
-        moviesSearchPath: "/search/movie",
-        peopleSearchPath: "/search/person",
+        searchPath: "/search",
+        tvShowsPath: "/tv",
+        moviesPath: "/movie",
+        peoplePath: "/person",
         timeout: 20000,
         dataType: "json",
         responseLang: "it-IT",
+        imageLang: "it,null",
+        appendExtra: "credits",
         includeAdult: false,
         sliderAnimationDuration: 500,
-        moviesSearchType: 1,
-        tvShowsSearchType: 2,
-        peopleSearchType: 3
+        detailSectionSlideDuration: 300,
+        movieType: 1,
+        tvShowType: 2,
+        personType: 3,
+        getFlagUrl: function (countryCode) {
+            return "https://www.countryflags.io/" + countryCode + "/flat/32.png";
+        }
     };
     $.when(getConfiguration(config), getTvGenres(config), getMovieGenres(config)).then(function () {
         //dopo che la configurazione è terminata, collego handler per la ricerca
@@ -87,7 +94,7 @@ function performSearch(searchedText, configObject, page, searchType) {
     // questa operazione andrebbe fatta una sola volta tuttavia non è pesante
     $(".content.content--hide").removeClass("content--hide");
     if (configObject.pendingSearch) {
-        // TODO c'è una richiesta - considerare eventuale messaggio all'utente
+        // TODO c'è una richiesta in corso - considerare eventuale messaggio all'utente
         return;
     }
     if (searchedText === undefined || searchedText.trim().length === 0) {
@@ -99,29 +106,34 @@ function performSearch(searchedText, configObject, page, searchType) {
     // ogni opzione di ricerca scollega i listener per le frecce del relativo slider
     //se la ricerca è globale vengono scollegati tutti i listener
     switch (searchType) {
-        case configObject.moviesSearchType:
+        case configObject.movieType:
             //ricerca film
             detachPaginationFor($(".movie_results"));
+            $(".movie_results").find(".selected--element").removeClass("selected--element");
+            //controllo se la sezione dettagli è visualizzata
+            if ($(".movie_details").is(":visible")) {
+                $(".movie_details").slideUp(configObject.detailSectionSlideDuration);
+            }
             $.when(
-                searchForMovies(searchedText.trim(), configObject, page)
+                search(searchedText.trim(), configObject, page, configObject.moviesPath, handleMovieSearchResults),
             ).then(function () {
                 searchCompleted(configObject);
             });
             break;
-        case configObject.tvShowsSearchType:
+        case configObject.tvShowType:
             //ricerca serie tv
             detachPaginationFor($(".tvshow_results"));
             $.when(
-                searchForTvShows(searchedText.trim(), configObject, page)
+                search(searchedText.trim(), configObject, page, configObject.tvShowsPath, handleTvShowsSearchResults),
             ).then(function () {
                 searchCompleted(configObject);
             });
             break;
-        case configObject.peopleSearchType:
+        case configObject.personType:
             //ricerca personaggi
             detachPaginationFor($(".people_results"));
             $.when(
-                searchForPeople(searchedText.trim(), configObject, page)
+                search(searchedText.trim(), configObject, page, configObject.peoplePath, handlePeopleSearchResults)
             ).then(function () {
                 searchCompleted(configObject);
             });
@@ -130,18 +142,123 @@ function performSearch(searchedText, configObject, page, searchType) {
             //ricerca tutto
             detachPaginationFor($(".slider"));
             $.when(
-                searchForMovies(searchedText.trim(), configObject, page),
-                searchForTvShows(searchedText.trim(), configObject, page),
-                searchForPeople(searchedText.trim(), configObject, page)
+                search(searchedText.trim(), configObject, page, configObject.moviesPath, handleMovieSearchResults),
+                search(searchedText.trim(), configObject, page, configObject.tvShowsPath, handleTvShowsSearchResults),
+                search(searchedText.trim(), configObject, page, configObject.peoplePath, handlePeopleSearchResults)
             ).then(function () {
                 searchCompleted(configObject);
             });
     }
 }
 
+
 function searchCompleted(configObject) {
     configObject.pendingSearch = false;
-    // TODO risultati ottenuti - aggiungere handler per click su immagini
+    $(".result").off();
+    $(".result").click(function () {
+        var id = parseInt($(this).attr("data-id"));
+        var type = parseInt($(this).attr("data-type"));
+        switch (type) {
+            case configObject.movieType:
+                //rimuovo classe per il bordo da un eventuale precedente elemento e la aggiungo all'elemento cliccato
+                $(".movie_results").find(".selected--element").removeClass("selected--element");
+                $(this).addClass("selected--element")
+                searchMovieDetails(id, configObject, $(this));
+                break;
+        }
+    });
+}
+
+function searchMovieDetails(movieId, configObject, selectedHtmlElement) {
+    var properties = {
+        url: configObject.baseTmdbUrl + configObject.moviesPath + "/" + movieId,
+        data: {
+            include_image_language: configObject.imageLang,
+            append_to_response: configObject.appendExtra
+        },
+        success: function (data, status, xhr) {
+            console.log(data);
+            var cast = [];
+            if (data.credits.cast.length > 0) {
+                data.credits.cast.forEach(function (item) {
+                    cast.push(new TmdbSearchResponse(
+                        item.id,
+                        item.profile_path,
+                        configObject.personType,
+                        item.name,
+                        configObject));
+                });
+            }
+            var crew = [];
+            if (data.credits.crew.length > 0) {
+                data.credits.crew.forEach(function (item) {
+                    crew.push(new TmdbSearchResponse(
+                        item.id,
+                        item.profile_path,
+                        configObject.personType,
+                        item.name,
+                        configObject));
+                });
+            }
+            var movie = new Movie(
+                data.id,
+                data.poster_path,
+                configObject.movieType,
+                data.title,
+                configObject,
+                data.overview,
+                data.release_date,
+                data.genres,
+                data.backdrop_path,
+                data.original_title,
+                data.production_countries,
+                data.vote_average,
+                data.vote_count,
+                data.revenue,
+                data.budget,
+                data.runtime,
+                data.tagline,
+                cast,
+                crew
+            );
+            showMovieDetails(movie, configObject, selectedHtmlElement);
+        },
+        error: function () {
+            // TODO errore
+            console.log("errore dettagli");
+        }
+    };
+    getAjaxRequest(properties, configObject);
+}
+
+function showMovieDetails(movie, configObject) {
+    console.log(movie);
+    $(".movie_details .title").text(movie.getValue("title"));
+    $(".movie_details .sub_title_original_title").text(movie.getValue("originalTitle"));
+    $(".movie_details .genres_content").text(movie.getGenres());
+    //ottengo template da funzione di utilità per handlebars a cui passo il valore di movie.voteAverage che è un array
+    //se il voto non è presente l'array è vuoto altrimenti contiene valori boolean (true=stella piena, false=stella vuota)
+    $(".movie_details .vote_average").html(getHtmlFromHandlebars(movie.voteAverage, $("#vote_template").html()));
+    $(".movie_details .vote_count").text(movie.voteCount);
+    $(".movie_details .budget_value").text(movie.budget);
+    $(".movie_details .revenue_value").text(movie.revenue);
+    $(".movie_details .plot_content").text(movie.getValue("overview"));
+    $(".movie_details .tagline_content").text(movie.getValue("tagline"));
+    $(".movie_details .release_date_content").text(movie.releaseDate);
+    $(".movie_details .release_country").html(getHtmlFromHandlebars(movie.productionCountries, $("#country_flag_template").html()));
+    $(".movie_details .crew").html(getHtmlFromHandlebars(movie.crew, $("#credits_template").html()));
+    $(".movie_details .cast").html(getHtmlFromHandlebars(movie.cast, $("#credits_template").html()));
+    //controllo se la sezione è visualizzata
+    if ($(".movie_details").is(":hidden")) {
+        $(".movie_details").slideDown(configObject.detailSectionSlideDuration);
+    }
+    //associo hanlder per la chiusura
+    $(".movie_details .close_section__icon").off();
+    $(".movie_details .close_section__icon").click(function () {
+        //chiudo dettagli film
+        $(".movie_details").slideUp(configObject.detailSectionSlideDuration);
+        $(".movie_results").find(".selected--element").removeClass("selected--element");
+    });
 }
 
 //funzione che elimina i listener per le frecce di navigazione per un dato elemento
@@ -149,72 +266,24 @@ function detachPaginationFor(elementToDetach) {
     elementToDetach.find(".slider__arrow--next").off();
     elementToDetach.find(".slider__arrow--previous").off();
 }
-
-// TODO considerare di raggruppare le 3 funzioni searchForX in un'unica funzione
-//funzione che avvia la ricerca per i film
-function searchForMovies(searchedText, configObject, page) {
-    // detachPaginationFor($(".movie_results"));
+//funzione che prepara l'oggetto properties per la ricerca ajax
+function search(searchedText, configObject, page, urlPath, callback) {
     var properties = {
-        url: configObject.baseTmdbUrl + configObject.moviesSearchPath,
+        url: configObject.baseTmdbUrl + configObject.searchPath + urlPath,
         data: {
-            language: configObject.responseLang,
             query: searchedText,
             include_adult: configObject.includeAdult,
             page: page
         },
         success: function (data, status, xhr) {
-            handleMovieSearchResults(data, configObject, searchedText);
+            callback(data, configObject, searchedText);
         },
         error: function () {
-            // TODO errore ricerca film
-            // TODO considerare di passare oggetto data con 0 risultati e 0 pagine
+            callback({total_results: 0, page: 0, total_pages: 0}, configObject, searchedText);
         }
     };
     return getAjaxRequest(properties, configObject);
 }
-
-// funzione che avvia la ricerca per le serie tv
-function searchForTvShows(searchedText, configObject, page) {
-    // detachPaginationFor($(".tvshow_results"));
-    var properties = {
-        url: configObject.baseTmdbUrl + configObject.tvSearchPath,
-        data: {
-            language: configObject.responseLang,
-            query: searchedText,
-            include_adult: configObject.includeAdult,
-            page: page
-        },
-        success: function (data, status, xhr) {
-            handleTvShowsSearchResults(data, configObject, searchedText);
-        },
-        error: function () {
-            // TODO errore ricerca film
-        }
-    };
-    return getAjaxRequest(properties, configObject);
-}
-
-// funzione che avvia la ricerca per le persone
-function searchForPeople(searchedText, configObject, page) {
-    // detachPaginationFor($(".people_results"));
-    var properties = {
-        url: configObject.baseTmdbUrl + configObject.peopleSearchPath,
-        data: {
-            language: configObject.responseLang,
-            query: searchedText,
-            include_adult: configObject.includeAdult,
-            page: page
-        },
-        success: function (data, status, xhr) {
-            handlePeopleSearchResults(data, configObject, searchedText);
-        },
-        error: function () {
-            // TODO errore ricerca film
-        }
-    };
-    return getAjaxRequest(properties, configObject);
-}
-
 
 //funzione che gestisce la risposta per la ricerca effettuata sui film
 function handleMovieSearchResults(data, configObject, searchedText) {
@@ -222,21 +291,8 @@ function handleMovieSearchResults(data, configObject, searchedText) {
     // console.log(data);
     if (data.total_results > 0) {
         data.results.forEach(function (entry) {
-            //creo nuovo oggetto movie e lo inserisco nell'array
-            movies.push(new Movie(
-                entry.id,
-                entry.poster_path,
-                entry.overview,
-                entry.release_date,
-                entry.genre_ids,
-                entry.backdrop_path,
-                entry.title,
-                entry.original_title,
-                entry.original_language,
-                entry.vote_average,
-                entry.vote_count,
-                configObject
-            ));
+            //creo nuovo oggetto base e lo inserisco nell'array
+            movies.push(new TmdbSearchResponse(entry.id, entry.poster_path, configObject.movieType, entry.title, configObject));
         });
     }
     //rimuovo precedente html cancellando anche i listener associati sugli elementi
@@ -246,7 +302,7 @@ function handleMovieSearchResults(data, configObject, searchedText) {
     //stampo i dettagli sui risultati della ricerca - film trovati, pagine, etc..
     printSearchDetails("Film trovati: ", $(".movie_results .result_details__items_count"), data.total_results, $(".movie_results .result_details__pages_count"), data.page, data.total_pages);
     //creo oggetto slider
-    var movieSlider = new Slider("movies", "result", "result--first", data.page, data.total_pages, configObject.sliderAnimationDuration, searchedText, performSearch, configObject, configObject.moviesSearchType);
+    var movieSlider = new Slider("movies", "result", "result--first", data.page, data.total_pages, configObject.sliderAnimationDuration, searchedText, performSearch, configObject, configObject.movieType);
     //handler per i click su avanti e indietro
     $(".movie_results .slider__arrow--next").click(function () {
         movieSlider.moveNext();
@@ -262,21 +318,8 @@ function handleTvShowsSearchResults(data, configObject, searchedText) {
     // console.log(data);
     if (data.total_results > 0) {
         data.results.forEach(function (entry) {
-            //creo nuovo oggetto serie tv e lo inserisco nell'array
-            tvShows.push(new TvShow(
-                entry.id,
-                entry.poster_path,
-                entry.overview,
-                entry.first_air_date,
-                entry.genre_ids,
-                entry.backdrop_path,
-                entry.name,
-                entry.original_name,
-                entry.original_language,
-                entry.vote_average,
-                entry.vote_count,
-                configObject
-            ));
+            //creo nuovo oggetto base e lo inserisco nell'array
+            tvShows.push(new TmdbSearchResponse(entry.id, entry.poster_path, configObject.tvShowType, entry.name, configObject));
         });
     }
     //rimuovo precedente html cancellando anche i listener associati sugli elementi
@@ -286,7 +329,7 @@ function handleTvShowsSearchResults(data, configObject, searchedText) {
     //stampo i dettagli sui risultati della ricerca - serie tv trovate, pagine, etc..
     printSearchDetails("Serie TV trovate: ", $(".tvshow_results .result_details__items_count"), data.total_results, $(".tvshow_results .result_details__pages_count"), data.page, data.total_pages);
     //creo oggetto slider
-    var tvShowsSlider = new Slider("tvshows", "result", "result--first", data.page, data.total_pages, configObject.sliderAnimationDuration, searchedText, performSearch, configObject, configObject.tvShowsSearchType);
+    var tvShowsSlider = new Slider("tvshows", "result", "result--first", data.page, data.total_pages, configObject.sliderAnimationDuration, searchedText, performSearch, configObject, configObject.tvShowType);
     //handler per i click su avanti e indietro
     $(".tvshow_results .slider__arrow--next").click(function () {
         tvShowsSlider.moveNext();
@@ -302,13 +345,8 @@ function handlePeopleSearchResults(data, configObject, searchedText) {
     // console.log(data);
     if (data.total_results > 0) {
         data.results.forEach(function (entry) {
-            //creo nuovo oggetto persona e lo inserisco nell'array
-            people.push(new Person(
-                entry.id,
-                entry.profile_path,
-                entry.name,
-                configObject
-            ));
+            //creo nuovo oggetto base e lo inserisco nell'array
+            people.push(new TmdbSearchResponse(entry.id, entry.profile_path, configObject.personType, entry.name, configObject));
         });
     }
     //rimuovo precedente html cancellando anche i listener associati sugli elementi
@@ -318,7 +356,7 @@ function handlePeopleSearchResults(data, configObject, searchedText) {
     //stampo i dettagli sui risultati della ricerca - persone trovate, pagine, etc..
     printSearchDetails("Personaggi trovati: ", $(".people_results .result_details__items_count"), data.total_results, $(".people_results .result_details__pages_count"), data.page, data.total_pages);
     //creo oggetto slider
-    var peopleSlider = new Slider("people", "result", "result--first", data.page, data.total_pages, configObject.sliderAnimationDuration, searchedText, performSearch, configObject, configObject.peopleSearchType);
+    var peopleSlider = new Slider("people", "result", "result--first", data.page, data.total_pages, configObject.sliderAnimationDuration, searchedText, performSearch, configObject, configObject.personType);
     //handler per i click su avanti e indietro
     $(".people_results .slider__arrow--next").click(function () {
         peopleSlider.moveNext();
@@ -340,7 +378,7 @@ function printSearchDetails(elementName, totalResultsElement, totalResults, pagi
 
 // funzione di utilità per inviare una richiesta ajax
 // l'oggetto properties contiene i parametri configurati dalla funzione chiamante. Nella funzione
-// vengono aggiunti o parametri comuni come il timeout, l'apikey e il tipo di risposta
+// vengono aggiunti o parametri comuni come il timeout, l'apikey, lingua e il tipo di risposta
 // questi valori sono contenuti nell'oggetto configObject
 function getAjaxRequest(properties, configObject) {
     properties.timeout = configObject.timeout;
@@ -348,16 +386,17 @@ function getAjaxRequest(properties, configObject) {
     if ("data" in properties) {
         //ci sono già parametri nella query
         properties.data["api_key"] = configObject.apiKey;
+        properties.data["language"] = configObject.responseLang;
     } else {
         //nessun parametro nella query
-        properties.data = {"api_key": configObject.apiKey};
+        properties.data = {"api_key": configObject.apiKey, "language": configObject.responseLang};
     }
     // console.log(properties);
     return $.ajax(properties);
 }
 
 // funzione di utilità per handlebars
-function getHtmlFromHandlebars(data, source) {
-    var template = Handlebars.compile(source);
+function getHtmlFromHandlebars(data, scriptSource) {
+    var template = Handlebars.compile(scriptSource);
     return template({list: data});
 }

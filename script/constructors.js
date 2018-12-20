@@ -1,10 +1,8 @@
 "use strict";
-// TODO valutare se estrapolare proprietà prototype
 //container, element e firstFlag sono stringhe che rappresentano le classi utilizzate nel css
 //container: container per lo slider
 //element: elemento dello slider
 //firstFlag: classe assegnata al primo elemento visualizzato
-//data: array di oggetti da visualizzare
 function Slider(container, element, firstFlag, currentPage, pagesCount, animationDuration, searchedText, loadFunctionCallback, configObject, searchType) {
 
     //stringhe di utilità per i selettori jquery
@@ -109,7 +107,7 @@ Slider.prototype.movePrevious = function () {
     }
 };
 
-// funzione di utilità
+// funzione prototype di utilità per le istanze di slider
 Slider.prototype.getIndiceProssimoElementoDaVisualizzare = function (avanti, massimaPosizioneScroll) {
     console.log("funzione utilità su oggetto id: " + this.objId);
     var indicePrimoElementoVisualizzato = $(this.sliderFirstElement).index();
@@ -128,9 +126,10 @@ Slider.prototype.getIndiceProssimoElementoDaVisualizzare = function (avanti, mas
 };
 
 //costruttore per istanze base, tutte le ricerche fatte (film, serietv o persone hanno sempre un id e un'immagine 2:3
-function TmdbSearchResponse(id, portraitImage, config) {
-    this.notAvailable = "Non disponibile";
+function TmdbSearchResponse(id, portraitImage, type, name, config) {
     this.id = id;
+    this.type = type;
+    this.name = name;
     if (portraitImage === undefined || portraitImage === null) {
         this.portraitImage = config.noImagePathPortrait;
     } else {
@@ -141,35 +140,81 @@ function TmdbSearchResponse(id, portraitImage, config) {
         }
     }
 }
-
-//sovrascrivo oggetto prototype per aggiungere più funzioni comuni a tutte le istanze
-// TmdbSearchResponse.prototype = {
-//     constructor: TmdbSearchResponse,
-//     getId: function () {
-//         return this.id;
-//     },
-//     getPortrait: function () {
-//         return this.portraitImage;
-//     }
-// };
-
-//costruttore per istanze film
-function Movie(id, poster, overview, releaseDate, genres, backdrops, title, originalTitle, originalLang, voteAverage, voteCount, config) {
-    TmdbSearchResponse.call(this, id, poster, config);
-    this.overview = overview;
-    this.releaseDate = releaseDate;
-    this.genres = genres;
-    this.backdrops = backdrops;
-    this.title = title;
-    this.originalTitle = originalTitle;
-    this.originalLang = originalLang;
-    this.voteAverage = voteAverage;
-    this.voteCount = voteCount;
+//proprietà prototype che viene ritornata per eventuali valori non definiti
+TmdbSearchResponse.prototype.notAvailable = "N/A";
+//metodo prototype per ottenere un valore generico
+TmdbSearchResponse.prototype.getValue = function (propertyName) {
+    if (propertyName in this && this[propertyName].length > 0) {
+        return this[propertyName];
+    }
+    return this.notAvailable;
+};
+TmdbSearchResponse.prototype.getGenres = function () {
+    if (this.genres === null || this.genres === undefined || this.genres.length === 0) {
+        return this.notAvailable;
+    }
+    var genres = [];
+    this.genres.forEach(function (item) {
+        genres.push(item.name)
+    });
+    return genres.join(", ");
 }
 
+//costruttore per istanze movie
+function Movie(id, poster, type, title, config, overview, releaseDate, genres, backdrops, originalTitle, productionCountries, voteAverage, voteCount, revenue, budget, runtime, tagline, cast, crew) {
+    TmdbSearchResponse.call(this, id, poster, type, title, config);
+    this.overview = overview;
+    this.releaseDate = releaseDate;
+    this.genres = genres;
+    this.backdrops = backdrops;
+    this.title = title;
+    this.originalTitle = originalTitle;
+    this.voteAverage = getVote(voteAverage);
+    this.voteCount = voteCount;
+    this.runtime = runtime;
+    this.tagline = tagline;
+    this.cast = cast;
+    this.crew = crew;
+    if (revenue === null || revenue === undefined || revenue == 0) {
+        this.revenue = this.notAvailable;
+    } else {
+        this.revenue = revenue.toLocaleString();
+    }
+    if (budget === null || budget === undefined || budget == 0) {
+        this.budget = this.notAvailable;
+    } else {
+        this.budget = budget.toLocaleString();
+    }
+    if (releaseDate === null || releaseDate === undefined || releaseDate.length === 0) {
+        this.releaseDate = this.notAvailable;
+    } else {
+        this.releaseDate = moment(releaseDate, "YYYY-MM-DD").format("DD-MM-YYYY");
+    }
+    if (productionCountries === null || productionCountries === undefined || productionCountries.length === 0) {
+        this.productionCountries = [];
+    } else {
+        var countryCodes = [];
+        productionCountries.forEach(function (item) {
+            // countryCodes.push(item.iso_3166_1);
+            countryCodes.push({countryFlagUrl: config.getFlagUrl(item.iso_3166_1)})
+        });
+        this.productionCountries = countryCodes;
+    }
+}
+// Movie.prototype = new TmdbSearchResponse();
+// Movie.prototype.constructor = TmdbSearchResponse;
+Movie.prototype = Object.create(TmdbSearchResponse.prototype, {
+    constructor: {
+        configurable: true,
+        enumerable: true,
+        value: TmdbSearchResponse,
+        writable: true
+    }
+});
+
 // costruttore per istanze serie tv
-function TvShow(id, poster, overview, releaseDate, genres, backdrops, title, originalTitle, originalLang, voteAverage, voteCount, config) {
-    TmdbSearchResponse.call(this, id, poster, config);
+function TvShow(id, poster, type, overview, releaseDate, genres, backdrops, title, originalTitle, originalLang, voteAverage, voteCount, config) {
+    TmdbSearchResponse.call(this, id, poster, type, config);
     this.overview = overview;
     this.releaseDate = releaseDate;
     this.genres = genres;
@@ -177,12 +222,28 @@ function TvShow(id, poster, overview, releaseDate, genres, backdrops, title, ori
     this.title = title;
     this.originalTitle = originalTitle;
     this.originalLang = originalLang;
-    this.voteAverage = voteAverage;
+    this.voteAverage = getVote(voteAverage);
     this.voteCount = voteCount;
 }
 
 //costruttore per istanze persona
-function Person(id, pic, name, config) {
-    TmdbSearchResponse.call(this, id, pic, config);
+function Person(id, pic, type, name, config) {
+    TmdbSearchResponse.call(this, id, pic, type, config);
     this.name = name;
+}
+
+//funzione di utilità per la formattazione del voto
+function getVote(vote) {
+    var votes = [];
+    if (vote !== undefined && vote !== null) {
+        var numericVote = Math.ceil(vote / 2);
+        for (var i = 0; i < 5; i++) {
+            if (i + 1 <= numericVote) {
+                votes.push({vote: true});
+            } else {
+                votes.push({vote: false});
+            }
+        }
+    }
+    return votes;
 }
