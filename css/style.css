@@ -66,11 +66,11 @@ body {
 	outline: none;
 }
 
-.search__button{
+.search__button {
 	cursor: pointer;
 }
 
-	/*DETTAGLI NUMERICI DELLA RICERCA (elementi trovati, pagine....)*/
+/*DETTAGLI NUMERICI DELLA RICERCA (elementi trovati, pagine....)*/
 .result_details {
 	display: flex;
 	justify-content: space-between;
@@ -184,19 +184,19 @@ body {
 }
 
 /*DETTAGLI DELL'ELEMENTO SELEZIONATO*/
-.selected--element{
+.selected--element {
 	border: 2px solid red;
 }
 
-.movie_details, .tvshow_details {
+.movie_details, .tvshow_details, .person_details {
 	display: none;
 	position: relative;
 	width: 100%;
-	border: 2px solid red;
 	margin-top: 5px;
+	border: 2px solid red;
 }
 
-.movie_details:after, .tvshow_details:after {
+.movie_details:after, .tvshow_details:after, .person_details:after {
 	display: table;
 	clear: both;
 	content: "";
@@ -216,7 +216,20 @@ body {
 	text-align: right;
 }
 
-.movie_details__credits, .tvshow_details__credits {
+.person_details__info__generals {
+	width: 40%;
+	float: left;
+	padding: 10px;
+}
+
+.person_details__info__bio {
+	width: 60%;
+	float: left;
+	padding: 10px 50px 10px 10px;
+	text-align: right;
+}
+
+.movie_details__credits, .tvshow_details__credits, .person_details__images {
 	width: 100%;
 	float: left;
 	padding: 10px;
@@ -236,21 +249,21 @@ body {
 }
 
 .close_section {
-	cursor: pointer;
 	position: absolute;
 	top: 10px;
 	right: 10px;
 	font-size: 40px;
-	color: white;
+	cursor: pointer;
 	opacity: 0.2;
+	color: white;
 }
 
-.close_section:hover{
+.close_section:hover {
 	opacity: 0.9;
 }
 
 /*stili per la sezione info*/
-.title {
+.title, .person_name {
 	font-size: 26px;
 	font-weight: 700;
 	text-transform: uppercase;
@@ -270,6 +283,10 @@ body {
 .release_date_label,
 .country_production_label,
 .country_production_label,
+.birthday_label,
+.deathday_label,
+.place_label,
+.bio_label,
 .status_label {
 	font-size: 12px;
 	color: gray;
@@ -289,8 +306,14 @@ body {
 .episodes_value,
 .seasons_value,
 .crew_label,
+.person_images_label,
 .cast_label,
-.no_credits {
+.birthday_value,
+.place_value,
+.deathday_value,
+.bio_content,
+.no_credits,
+.no_images {
 	font-size: 16px;
 	font-style: italic;
 	margin-left: 5px;
@@ -317,7 +340,7 @@ body {
 	color: goldenrod;
 }
 
-.crew, .cast {
+.crew, .cast, .person_images {
 	overflow-x: auto;
 	overflow-y: hidden;
 	padding: 5px 0;
@@ -337,6 +360,12 @@ body {
 	margin-left: 10px;
 }
 
+.person_image {
+	width: 160px;
+	height: 240px;
+	margin-left: 10px;
+}
+
 .person_detail_name {
 	position: absolute;
 	bottom: 0;
@@ -349,7 +378,7 @@ body {
 	background-color: gray;
 }
 
-.no_credits {
+.no_credits, .no_images {
 	padding: 10px;
 }
 

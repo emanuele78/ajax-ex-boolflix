@@ -137,6 +137,11 @@ function performSearch(searchedText, configObject, page, searchType) {
         case configObject.personType:
             //ricerca personaggi
             detachPaginationFor($(".people_results"));
+            $(".people_results").find(".selected--element").removeClass("selected--element");
+            //controllo se la sezione dettagli è visualizzata
+            if ($(".person_details").is(":visible")) {
+                $(".person_details").slideUp(configObject.detailSectionSlideDuration);
+            }
             $.when(
                 search(searchedText.trim(), configObject, page, configObject.peoplePath, handlePeopleSearchResults)
             ).then(function () {
@@ -174,6 +179,12 @@ function searchCompleted(configObject) {
                 $(".tvshow_results").find(".selected--element").removeClass("selected--element");
                 $(this).addClass("selected--element")
                 searchTvShowDetails(id, configObject, $(this));
+                break;
+            case configObject.personType:
+                //rimuovo classe per il bordo da un eventuale precedente elemento e la aggiungo all'elemento cliccato
+                $(".people_results").find(".selected--element").removeClass("selected--element");
+                $(this).addClass("selected--element")
+                searchPersonDetails(id, configObject, $(this));
                 break;
         }
     });
@@ -232,10 +243,6 @@ function searchMovieDetails(movieId, configObject, selectedHtmlElement) {
                 crew
             );
             showMovieDetails(movie, configObject, selectedHtmlElement);
-        },
-        error: function () {
-            // TODO errore
-            console.log("errore dettagli");
         }
     };
     getAjaxRequest(properties, configObject);
@@ -293,10 +300,33 @@ function searchTvShowDetails(tvShowId, configObject, selectedHtmlElement) {
                 crew
             );
             showTvDetails(tvShow, configObject, selectedHtmlElement);
+        }
+    };
+    getAjaxRequest(properties, configObject);
+}
+
+function searchPersonDetails(personId, configObject, selectedHtmlElement) {
+    var properties = {
+        url: configObject.baseTmdbUrl + configObject.peoplePath + "/" + personId,
+        data: {
+            include_image_language: configObject.imageLang,
+            append_to_response: configObject.appendExtra
         },
-        error: function () {
-            // TODO errore
-            console.log("errore dettagli serie tv");
+        success: function (data, status, xhr) {
+            console.log(data);
+            var person = new Person(
+                data.id,
+                data.profile_path,
+                configObject.personType,
+                data.name,
+                configObject,
+                data.biography,
+                data.birthday,
+                data.deathday,
+                data.place_of_birth,
+                data.images
+            );
+            showPersonDetails(person, configObject, selectedHtmlElement);
         }
     };
     getAjaxRequest(properties, configObject);
@@ -304,7 +334,7 @@ function searchTvShowDetails(tvShowId, configObject, selectedHtmlElement) {
 
 function showMovieDetails(movie, configObject) {
     console.log(movie);
-    $(".movie_details .title").text(movie.getValue("title"));
+    $(".movie_details .title").text(movie.getValue("name"));
     $(".movie_details .sub_title_original_title").text(movie.getValue("originalTitle"));
     $(".movie_details .genres_content").text(movie.getGenres());
     //ottengo template da funzione di utilità per handlebars a cui passo il valore di movie.voteAverage che è un array
@@ -334,7 +364,7 @@ function showMovieDetails(movie, configObject) {
 
 function showTvDetails(tvshow, configObject) {
     console.log(tvshow);
-    $(".tvshow_details .title").text(tvshow.getValue("title"));
+    $(".tvshow_details .title").text(tvshow.getValue("name"));
     $(".tvshow_details .sub_title_original_title").text(tvshow.getValue("originalTitle"));
     $(".tvshow_details .genres_content").text(tvshow.getGenres());
     //ottengo template da funzione di utilità per handlebars a cui passo il valore di movie.voteAverage che è un array
@@ -359,6 +389,27 @@ function showTvDetails(tvshow, configObject) {
         //chiudo dettagli film
         $(".tvshow_details").slideUp(configObject.detailSectionSlideDuration);
         $(".tvshow_results").find(".selected--element").removeClass("selected--element");
+    });
+}
+
+function showPersonDetails(person, configObject) {
+    console.log(person);
+    //controllo se la sezione è visualizzata
+    $(".person_details .person_name").text(person.getValue("name"));
+    $(".person_details .birthday_value").text(person.birthday);
+    $(".person_details .place_value").text(person.getValue("birthPlace"));
+    $(".person_details .deathday_value").text(person.deathday);
+    $(".person_details .bio_content").text(person.getValue("bio"));
+    $(".person_details .person_images").html(getHtmlFromHandlebars(person.pics, $("#person_images_template").html()));
+    if ($(".person_details").is(":hidden")) {
+        $(".person_details").slideDown(configObject.detailSectionSlideDuration);
+    }
+    //associo hanlder per la chiusura
+    $(".person_details .close_section__icon").off();
+    $(".person_details .close_section__icon").click(function () {
+        //chiudo dettagli film
+        $(".person_details").slideUp(configObject.detailSectionSlideDuration);
+        $(".people_results").find(".selected--element").removeClass("selected--element");
     });
 }
 

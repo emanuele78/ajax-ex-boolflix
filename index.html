@@ -62,6 +62,15 @@
 					<span class="no_credits">N/A</span>
 					{{/if}}
 				</script>
+				<script id="person_images_template" type="text/x-handlebars-template">
+					{{#if list}}
+					{{#each list}}
+					<img alt="" class="person_image" src="{{portraitImage}}">
+					{{/each}}
+					{{else}}
+					<span class="no_images">N/A</span>
+					{{/if}}
+				</script>
 			</div>
 			<div class="header">
 				<div class="header__left">
@@ -88,9 +97,7 @@
 						<div class="slider__arrow slider__arrow--next">
 							<i class="fas fa-caret-right"></i>
 						</div>
-						<div class="movies">
-
-						</div>
+						<div class="movies"></div>
 					</div>
 					<div class="movie_details">
 						<div class="movie_details__info">
@@ -140,9 +147,9 @@
 								<div class="release_country"></div>
 							</div>
 						</div>
-					<div class="close_section">
-						<i class="close_section__icon fas fa-times"></i>
-					</div>
+						<div class="close_section">
+							<i class="close_section__icon fas fa-times"></i>
+						</div>
 					</div>
 				</div>
 				<div class="tvshow_results">
@@ -157,9 +164,7 @@
 						<div class="slider__arrow slider__arrow--next">
 							<i class="fas fa-caret-right"></i>
 						</div>
-						<div class="tvshows">
-
-						</div>
+						<div class="tvshows"></div>
 					</div>
 					<div class="tvshow_details">
 						<div class="tvshow_details__info">
@@ -214,7 +219,6 @@
 						</div>
 					</div>
 				</div>
-
 				<div class="people_results">
 					<div class="result_details">
 						<span class="result_details__items_count"></span>
@@ -227,8 +231,36 @@
 						<div class="slider__arrow slider__arrow--next">
 							<i class="fas fa-caret-right"></i>
 						</div>
-						<div class="people">
-
+						<div class="people"></div>
+					</div>
+					<div class="person_details">
+						<div class="person_details__info">
+							<div class="person_details__info__generals">
+								<span class="person_name"></span>
+								<div class="birthday">
+									<span class="birthday_label">Data di nascita:</span>
+									<span class="birthday_value"></span>
+								</div>
+								<div class="place">
+									<span class="place_label">Luogo di nascita:</span>
+									<span class="place_value"></span>
+								</div>
+								<div class="deathday">
+									<span class="deathday_label">Data di morte:</span>
+									<span class="deathday_value"></span>
+								</div>
+							</div>
+							<div class="person_details__info__bio">
+								<span class="bio_label">Biografia</span>
+								<p class="bio_content"></p>
+							</div>
+						</div>
+						<div class="person_details__images">
+							<span class="person_images_label">Altre immagini</span>
+							<div class="person_images"></div>
+						</div>
+						<div class="close_section">
+							<i class="close_section__icon fas fa-times"></i>
 						</div>
 					</div>
 				</div>

@@ -140,6 +140,7 @@ function TmdbSearchResponse(id, portraitImage, type, name, config) {
         }
     }
 }
+
 //proprietà prototype che viene ritornata per eventuali valori non definiti
 TmdbSearchResponse.prototype.notAvailable = "N/A";
 //metodo prototype per ottenere un valore generico
@@ -185,7 +186,7 @@ function Movie(id, poster, type, title, config, overview, releaseDate, genres, b
     } else {
         this.budget = budget.toLocaleString();
     }
-    formatReleaseDate(releaseDate, this);
+    formatDate(releaseDate, this, "releaseDate");
     if (productionCountries === null || productionCountries === undefined || productionCountries.length === 0) {
         this.productionCountries = [];
     } else {
@@ -197,24 +198,11 @@ function Movie(id, poster, type, title, config, overview, releaseDate, genres, b
     }
 }
 
-function formatReleaseDate(releaseDate, object) {
-    if (releaseDate === null || releaseDate === undefined || releaseDate.length === 0) {
-        object.releaseDate = object.notAvailable;
+function formatDate(aDate, object, propertyName) {
+    if (aDate === null || aDate === undefined || aDate.length === 0) {
+        object[propertyName] = object.notAvailable;
     } else {
-        object.releaseDate = moment(releaseDate, "YYYY-MM-DD").format("DD-MM-YYYY");
-    }
-}
-
-function formatProductionCountries(productionCountries, object, config) {
-    if (productionCountries === null || productionCountries === undefined || productionCountries.length === 0) {
-        object.productionCountries = [];
-    } else {
-        var countryCodes = [];
-        productionCountries.forEach(function (item) {
-            // countryCodes.push(item.iso_3166_1);
-            countryCodes.push({countryFlagUrl: config.getFlagUrl(item.iso_3166_1)})
-        });
-        object.productionCountries = countryCodes;
+        object[propertyName] = moment(aDate, "YYYY-MM-DD").format("DD-MM-YYYY");
     }
 }
 
@@ -243,7 +231,7 @@ function TvShow(id, poster, type, title, config, overview, releaseDate, genres, 
     this.crew = crew;
     this.episodes = episodes;
     this.seasons = seasons;
-    formatReleaseDate(releaseDate, this);
+    formatDate(releaseDate, this, "releaseDate");
     if (productionCountries === null || productionCountries === undefined || productionCountries.length === 0) {
         this.productionCountries = [];
     } else {
@@ -265,10 +253,34 @@ TvShow.prototype = Object.create(TmdbSearchResponse.prototype, {
 });
 
 //costruttore per istanze persona
-function Person(id, pic, type, name, config) {
-    TmdbSearchResponse.call(this, id, pic, type, config);
-    this.name = name;
+function Person(id, poster, type, name, config, bio, birthday, deathday, birthPlace, images) {
+    TmdbSearchResponse.call(this, id, poster, type, name, config);
+    this.bio = bio;
+    formatDate(birthday, this, "birthday");
+    formatDate(deathday, this, "deathday");
+    this.birthPlace = birthPlace;
+    var pics = [];
+    if (images.profiles !== undefined && images.profiles !== null && images.profiles.length > 0) {
+        images.profiles.forEach(function (item) {
+            if ("posterSizes" in config && config.posterSizes.includes("w342")) {
+                var image = config.imageBaseSecureUrl + "w342" + item.file_path;
+            } else {
+                image = config.noImagePathPortrait;
+            }
+            pics.push({portraitImage: image});
+        });
+    }
+    this.pics = pics;
 }
+
+Person.prototype = Object.create(TmdbSearchResponse.prototype, {
+    constructor: {
+        configurable: true,
+        enumerable: true,
+        value: TmdbSearchResponse,
+        writable: true
+    }
+});
 
 //funzione di utilità per la formattazione del voto
 function getVote(vote) {
