@@ -1,5 +1,5 @@
 # TMDB CLIENT
-Semplice client TMDB con ricerca per film, serie tv e attore, con paginazione.
+Semplice client TMDB con ricerca di film, serie tv e attori sfruttando le API TMDB, con paginazione.
 
 [![Generic badge](https://img.shields.io/badge/LIVEDEMO-HERE-<COLOR>.svg)](https://emanuelemazzante.dev/demo/tmdb-client/)
 
